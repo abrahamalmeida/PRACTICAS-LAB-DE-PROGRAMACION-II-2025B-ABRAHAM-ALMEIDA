@@ -32,8 +32,13 @@ public:
         cout << "Año de publicacion: " << year << endl;
     }
 
-    string obtenerTitulo() const { return titulo; }
-    int obtenerYear() const { return year; }
+    string obtenerTitulo() const {
+        return titulo;
+    }
+
+    int obtenerYear() const {
+        return year;
+    }
 
     virtual ~Publicacion() {}
 };
@@ -83,6 +88,7 @@ public:
     }
 };
 
+// Funciones auxiliares
 bool validarTexto(const string& texto) {
     return !texto.empty();
 }
@@ -102,7 +108,11 @@ void mostrarMenu() {
     resetearColor();
     cout << "1. Agregar Publicacion" << endl;
     cout << "2. Mostrar todas las publicaciones registradas" << endl;
-    cout << "3. Salir del programa" << endl;
+    cout << "3. Buscar publicacion por titulo" << endl;
+    cout << "4. Buscar publicaciones por año" << endl;
+    cout << "5. Eliminar publicacion por titulo" << endl;
+    cout << "6. Mostrar estadisticas" << endl;
+    cout << "7. Salir del programa" << endl;
     cout << "\nIngrese su opcion: ";
 }
 
@@ -157,13 +167,25 @@ int main() {
                 cin >> year;
                 if (!validarYear(year)) { cout << "Año invalido.\n"; break; }
 
-                // Por ahora no pedimos datos extras (paginas, edición, fecha)
                 if (tipo == 1) {
-                    listaPublicaciones[cantidad++] = new Libro(titulo, autor, year, 0);
+                    int paginas;
+                    cout << "Ingrese el numero de paginas: ";
+                    cin >> paginas;
+                    if (!validarPositivo(paginas)) { cout << "Numero invalido.\n"; break; }
+                    listaPublicaciones[cantidad++] = new Libro(titulo, autor, year, paginas);
                 } else if (tipo == 2) {
-                    listaPublicaciones[cantidad++] = new Revista(titulo, autor, year, 0);
+                    int edicion;
+                    cout << "Ingrese el numero de edicion: ";
+                    cin >> edicion;
+                    if (!validarPositivo(edicion)) { cout << "Numero invalido.\n"; break; }
+                    listaPublicaciones[cantidad++] = new Revista(titulo, autor, year, edicion);
                 } else if (tipo == 3) {
-                    listaPublicaciones[cantidad++] = new Periodico(titulo, autor, year, "");
+                    string fecha;
+                    cout << "Ingrese la fecha (DD/MM/AAAA): ";
+                    cin.ignore();
+                    getline(cin, fecha);
+                    if (!validarTexto(fecha)) { cout << "Fecha invalida.\n"; break; }
+                    listaPublicaciones[cantidad++] = new Periodico(titulo, autor, year, fecha);
                 } else {
                     cout << "Opcion no valida.\n";
                 }
@@ -184,7 +206,86 @@ int main() {
             }
 
             case 3: {
-                cout << "\nSaliendo del programa..." << endl;
+                limpiarPantalla();
+                string busqueda;
+                cout << "Ingrese el titulo a buscar: ";
+                getline(cin, busqueda);
+                bool encontrado = false;
+
+                for (int i = 0; i < cantidad; i++) {
+                    if (listaPublicaciones[i]->obtenerTitulo() == busqueda) {
+                        listaPublicaciones[i]->mostrarInformacion();
+                        encontrado = true;
+                        break;
+                    }
+                }
+
+                if (!encontrado) cout << "No se encontro una publicacion con ese titulo.\n";
+                break;
+            }
+
+            case 4: {
+                limpiarPantalla();
+                int yearBusqueda;
+                cout << "Ingrese el año de publicacion a buscar: ";
+                cin >> yearBusqueda;
+                bool encontrados = false;
+
+                for (int i = 0; i < cantidad; i++) {
+                    if (listaPublicaciones[i]->obtenerYear() == yearBusqueda) {
+                        listaPublicaciones[i]->mostrarInformacion();
+                        encontrados = true;
+                    }
+                }
+
+                if (!encontrados) cout << "No se encontraron publicaciones en ese año.\n";
+                break;
+            }
+
+            case 5: {
+                limpiarPantalla();
+                string tituloEliminar;
+                cout << "Ingrese el titulo de la publicacion a eliminar: ";
+                getline(cin, tituloEliminar);
+
+                bool eliminado = false;
+                for (int i = 0; i < cantidad; i++) {
+                    if (listaPublicaciones[i]->obtenerTitulo() == tituloEliminar) {
+                        delete listaPublicaciones[i];
+                        for (int j = i; j < cantidad - 1; j++) {
+                            listaPublicaciones[j] = listaPublicaciones[j + 1];
+                        }
+                        cantidad--;
+                        eliminado = true;
+                        cout << "Publicacion eliminada correctamente.\n";
+                        break;
+                    }
+                }
+
+                if (!eliminado) cout << "No se encontro la publicacion.\n";
+                break;
+            }
+
+            case 6: {
+                limpiarPantalla();
+                int libros = 0, revistas = 0, periodicos = 0;
+
+                for (int i = 0; i < cantidad; i++) {
+                    if (dynamic_cast<Libro*>(listaPublicaciones[i])) libros++;
+                    else if (dynamic_cast<Revista*>(listaPublicaciones[i])) revistas++;
+                    else if (dynamic_cast<Periodico*>(listaPublicaciones[i])) periodicos++;
+                }
+
+                cout << "\nEstadisticas:\n";
+                cout << "Libros: " << libros << endl;
+                cout << "Revistas: " << revistas << endl;
+                cout << "Periodicos: " << periodicos << endl;
+                cout << "Total: " << cantidad << " publicaciones\n";
+                break;
+            }
+
+            case 7: {
+                cout << "\nSaliendo del programa...\n";
                 break;
             }
 
@@ -192,12 +293,12 @@ int main() {
                 cout << "\nOpcion no valida. Intente de nuevo.\n";
         }
 
-        if (opcion != 3) {
+        if (opcion != 7) {
             cout << "\nPresione Enter para continuar...";
             cin.ignore();
         }
 
-    } while (opcion != 3);
+    } while (opcion != 7);
 
     for (int i = 0; i < cantidad; i++) {
         delete listaPublicaciones[i];
