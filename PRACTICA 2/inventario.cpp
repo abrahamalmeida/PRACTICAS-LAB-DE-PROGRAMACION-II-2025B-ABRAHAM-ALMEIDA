@@ -157,6 +157,8 @@ void modificarProducto() {
     cout << "Producto no encontrado.\n";
 }
 
+
+
 // Funcion para eliminar un producto (borrado logico)
 void eliminarProducto() {
     limpiarPantalla();
